@@ -12,6 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   jovial_svg: ^1.1.25
+  dropdown_search: ^6.0.2
 
 dev_dependencies:
   flutter_test:

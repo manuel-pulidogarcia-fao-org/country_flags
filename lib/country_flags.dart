@@ -3,3 +3,5 @@ export 'src/flag_code.dart';
 export 'src/country_names.dart';
 export 'src/country_flag_with_name.dart';
 export 'src/country_data.dart';
+export 'src/country_model.dart';
+export 'src/country_dropdown_search.dart';

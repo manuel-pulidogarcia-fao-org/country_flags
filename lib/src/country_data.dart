@@ -3094,4 +3094,12 @@ class CountryDataStore {
     final country = _findByM49(m49Code);
     return country?['ISO-alpha2 Code'] as String?;
   }
+
+  static Map<String, dynamic>? getCountryDataByIso2(String iso2) {
+    return _findByIso2(iso2);
+  }
+
+  static List<Map<String, dynamic>> getAllCountriesData() {
+    return List.unmodifiable(_countries);
+  }
 }
