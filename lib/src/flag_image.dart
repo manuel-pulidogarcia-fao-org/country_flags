@@ -148,7 +148,7 @@ class _NotFoundFlag extends FlagImage {
   }
 }
 
-class _ImageWidget extends StatelessWidget {
+class _ImageWidget extends StatefulWidget {
   const _ImageWidget(
     this.flagCode,
   );
@@ -156,14 +156,88 @@ class _ImageWidget extends StatelessWidget {
   final String flagCode;
 
   @override
+  State<_ImageWidget> createState() => _ImageWidgetState();
+}
+
+class _ImageWidgetState extends State<_ImageWidget> {
+  bool _siFailed = false;
+  bool _pngFailed = false;
+
+  @override
   Widget build(BuildContext context) {
-    return ScalableImageWidget.fromSISource(
-      key: const Key('svgFlag'),
-      si: ScalableImageSource.fromSI(
-        rootBundle,
-        'packages/country_flags/res/si/$flagCode.si',
-      ),
-      fit: BoxFit.cover,
+    if (_pngFailed) {
+      return const _NotFoundFlag();
+    }
+
+    if (_siFailed) {
+      return Image.asset(
+        'packages/country_flags/res/png/${widget.flagCode}.png',
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          if (!_pngFailed) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                setState(() {
+                  _pngFailed = true;
+                });
+              }
+            });
+          }
+          return const _NotFoundFlag();
+        },
+      );
+    }
+
+    return FutureBuilder<bool>(
+      future: _checkSiExists(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData && (snapshot.data ?? false)) {
+          return ScalableImageWidget.fromSISource(
+            key: const Key('svgFlag'),
+            si: ScalableImageSource.fromSI(
+              rootBundle,
+              'packages/country_flags/res/si/${widget.flagCode}.si',
+            ),
+            fit: BoxFit.cover,
+          );
+        } else if (snapshot.hasData && !(snapshot.data ?? false)) {
+          if (!_siFailed) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                setState(() {
+                  _siFailed = true;
+                });
+              }
+            });
+          }
+          return Image.asset(
+            'packages/country_flags/res/png/${widget.flagCode}.png',
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              if (!_pngFailed) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    setState(() {
+                      _pngFailed = true;
+                    });
+                  }
+                });
+              }
+              return const _NotFoundFlag();
+            },
+          );
+        }
+        return const SizedBox.shrink();
+      },
     );
+  }
+
+  Future<bool> _checkSiExists() async {
+    try {
+      await rootBundle.load('packages/country_flags/res/si/${widget.flagCode}.si');
+      return true;
+    } on Exception {
+      return false;
+    }
   }
 }

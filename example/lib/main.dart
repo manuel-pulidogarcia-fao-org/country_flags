@@ -169,7 +169,7 @@ class CountryDropdownExamplePage extends StatefulWidget {
 class _CountryDropdownExamplePageState
     extends State<CountryDropdownExamplePage> {
   String? _selectedIso2;
-  String _selectedLanguage = 'ru';
+  String _selectedLanguage = 'en';
   final List<String> _supportedLanguages = [
     'en',
     'es',
@@ -219,6 +219,7 @@ class _CountryDropdownExamplePageState
             ),
             const SizedBox(height: 12),
             CountryDropdownSearch(
+              unitedNationsFlagOption: true,
               selectedIso2: _selectedIso2,
               onCountryChanged: (iso2) {
                 setState(() {

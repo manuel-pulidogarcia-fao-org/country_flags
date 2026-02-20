@@ -1,5 +1,4 @@
 import 'package:country_flags/country_flags.dart';
-import 'package:country_flags/src/flag_code.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 
@@ -18,6 +17,7 @@ class CountryDropdownSearch<T> extends StatelessWidget {
   final String? Function(T)? getIso2;
   final String? Function(T)? getName;
   final Country? Function(T)? toCountryModel;
+  final bool unitedNationsFlagOption;
 
   const CountryDropdownSearch({
     Key? key,
@@ -35,11 +35,17 @@ class CountryDropdownSearch<T> extends StatelessWidget {
     this.getIso2,
     this.getName,
     this.toCountryModel,
+    this.unitedNationsFlagOption = false,
   }) : super(key: key);
 
   List<T> _getCountries() {
     if (countries != null && countries!.isNotEmpty) {
-      return countries!;
+      final result = List<T>.from(countries!);
+      if (unitedNationsFlagOption) {
+        final unCountry = _createUnitedNationsCountry() as T;
+        result.add(unCountry);
+      }
+      return result;
     }
 
     final allNames = CountryDataStore.getAllNames(languageCode: languageCode);
@@ -51,20 +57,26 @@ class CountryDropdownSearch<T> extends StatelessWidget {
       final countryData = CountryDataStore.getCountryDataByIso2(iso2);
 
       if (countryData != null) {
-        countryList.add(Country(
-          name: name,
-          iso2: iso2,
-          iso3: countryData['ISO-alpha3 Code'] as String?,
-          m49: countryData['M49 Code'] as int?,
-          nameEn: countryData['name_en'] as String?,
-          nameEs: countryData['name_es'] as String?,
-          nameFr: countryData['name_fr'] as String?,
-          nameRu: countryData['name_ru'] as String?,
-          namePt: countryData['name_pt'] as String?,
-          nameZh: countryData['name_zh'] as String?,
-          nameAr: countryData['name_ar'] as String?,
-        ),);
+        countryList.add(
+          Country(
+            name: name,
+            iso2: iso2,
+            iso3: countryData['ISO-alpha3 Code'] as String?,
+            m49: countryData['M49 Code'] as int?,
+            nameEn: countryData['name_en'] as String?,
+            nameEs: countryData['name_es'] as String?,
+            nameFr: countryData['name_fr'] as String?,
+            nameRu: countryData['name_ru'] as String?,
+            namePt: countryData['name_pt'] as String?,
+            nameZh: countryData['name_zh'] as String?,
+            nameAr: countryData['name_ar'] as String?,
+          ),
+        );
       }
+    }
+
+    if (unitedNationsFlagOption) {
+      countryList.add(_createUnitedNationsCountry());
     }
 
     countryList.sort((a, b) {
@@ -74,6 +86,42 @@ class CountryDropdownSearch<T> extends StatelessWidget {
     });
 
     return countryList as List<T>;
+  }
+
+  Country _createUnitedNationsCountry() {
+    return Country(
+      name: _getUnitedNationsName(languageCode),
+      iso2: 'UN',
+      iso3: 'UNO',
+      nameEn: 'United Nations',
+      nameEs: 'Naciones Unidas',
+      nameFr: 'Nations Unies',
+      nameRu: 'Организация Объединённых Наций',
+      namePt: 'Nações Unidas',
+      nameZh: '联合国',
+      nameAr: 'الأمم المتحدة',
+    );
+  }
+
+  String _getUnitedNationsName(String langCode) {
+    switch (langCode.toLowerCase()) {
+      case 'en':
+        return 'United Nations';
+      case 'es':
+        return 'Naciones Unidas';
+      case 'fr':
+        return 'Nations Unies';
+      case 'ru':
+        return 'Организация Объединённых Наций';
+      case 'pt':
+        return 'Nações Unidas';
+      case 'zh':
+        return '联合国';
+      case 'ar':
+        return 'الأمم المتحدة';
+      default:
+        return 'United Nations';
+    }
   }
 
   String _getCountryName(T country) {
@@ -104,6 +152,21 @@ class CountryDropdownSearch<T> extends StatelessWidget {
   Widget _buildFlagWidget(String? iso2) {
     if (iso2 == null || iso2.isEmpty) {
       return _buildUnknownFlag();
+    }
+
+    if (iso2.toUpperCase() == 'UN') {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: Image.asset(
+          'packages/country_flags/res/png/un_flag.png',
+          width: flagWidth,
+          height: flagHeight,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return _buildUnknownFlag();
+          },
+        ),
+      );
     }
 
     final flagCode = FlagCode.fromCountryCode(iso2);
@@ -143,53 +206,57 @@ class CountryDropdownSearch<T> extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final inputDecorationTheme = theme.inputDecorationTheme;
-    
+
     BorderRadius getBorderRadius(InputBorder? border) {
       if (border is OutlineInputBorder) {
         return border.borderRadius;
       }
       return BorderRadius.circular(4.0);
     }
-    
+
     final defaultBorderRadius = getBorderRadius(inputDecorationTheme.border);
-    
+
     final defaultBorder = OutlineInputBorder(
       borderSide: BorderSide(
         color: inputDecorationTheme.border is OutlineInputBorder
-            ? (inputDecorationTheme.border as OutlineInputBorder).borderSide.color
+            ? (inputDecorationTheme.border as OutlineInputBorder)
+                .borderSide
+                .color
             : colorScheme.onSurface.withOpacity(0.38),
         width: inputDecorationTheme.border is OutlineInputBorder
-            ? (inputDecorationTheme.border as OutlineInputBorder).borderSide.width
+            ? (inputDecorationTheme.border as OutlineInputBorder)
+                .borderSide
+                .width
             : 1.0,
       ),
       borderRadius: defaultBorderRadius,
     );
 
     final enabledBorder = inputDecorationTheme.enabledBorder ?? defaultBorder;
-    final focusedBorder = inputDecorationTheme.focusedBorder ?? 
-      OutlineInputBorder(
-        borderSide: BorderSide(
-          color: colorScheme.primary,
-          width: 2.0,
-        ),
-        borderRadius: defaultBorderRadius,
-      );
-    final errorBorder = inputDecorationTheme.errorBorder ?? 
-      OutlineInputBorder(
-        borderSide: BorderSide(
-          color: colorScheme.error,
-          width: 1.0,
-        ),
-        borderRadius: defaultBorderRadius,
-      );
-    final focusedErrorBorder = inputDecorationTheme.focusedErrorBorder ?? 
-      OutlineInputBorder(
-        borderSide: BorderSide(
-          color: colorScheme.error,
-          width: 2.0,
-        ),
-        borderRadius: defaultBorderRadius,
-      );
+    final focusedBorder = inputDecorationTheme.focusedBorder ??
+        OutlineInputBorder(
+          borderSide: BorderSide(
+            color: colorScheme.primary,
+            width: 2.0,
+          ),
+          borderRadius: defaultBorderRadius,
+        );
+    final errorBorder = inputDecorationTheme.errorBorder ??
+        OutlineInputBorder(
+          borderSide: BorderSide(
+            color: colorScheme.error,
+            width: 1.0,
+          ),
+          borderRadius: defaultBorderRadius,
+        );
+    final focusedErrorBorder = inputDecorationTheme.focusedErrorBorder ??
+        OutlineInputBorder(
+          borderSide: BorderSide(
+            color: colorScheme.error,
+            width: 2.0,
+          ),
+          borderRadius: defaultBorderRadius,
+        );
 
     return InputDecoration(
       contentPadding: const EdgeInsets.fromLTRB(12, 12, 0, 0),
@@ -210,14 +277,14 @@ class CountryDropdownSearch<T> extends StatelessWidget {
 
   void _printCountryInfo(T country) {
     if (!printCountryInfo) return;
-    
+
     Country? countryModel;
     if (toCountryModel != null) {
       countryModel = toCountryModel!(country);
     } else if (country is Country) {
       countryModel = country;
     }
-    
+
     if (countryModel != null) {
       debugPrint('Selected Country Information:');
       debugPrint('  ISO2: ${countryModel.iso2}');
@@ -250,7 +317,8 @@ class CountryDropdownSearch<T> extends StatelessWidget {
     if (selectedIso2 != null && countryList.isNotEmpty) {
       try {
         selectedCountry = countryList.firstWhere(
-          (c) => _getCountryIso2(c)?.toUpperCase() == selectedIso2!.toUpperCase(),
+          (c) =>
+              _getCountryIso2(c)?.toUpperCase() == selectedIso2!.toUpperCase(),
         );
       } catch (e) {
         selectedCountry = null;
@@ -285,11 +353,12 @@ class CountryDropdownSearch<T> extends StatelessWidget {
           final iso2 = _getCountryIso2(country);
           final name = _getCountryName(country);
           return Material(
-            color: isSelected 
+            color: isSelected
                 ? Theme.of(context).primaryColor.withOpacity(0.1)
                 : Colors.transparent,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -300,10 +369,10 @@ class CountryDropdownSearch<T> extends StatelessWidget {
                       _capitalize(name),
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: isSelected 
-                            ? Theme.of(context).primaryColor 
-                            : null,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                        color:
+                            isSelected ? Theme.of(context).primaryColor : null,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.normal,
                       ),
                     ),
                   ),
@@ -342,10 +411,9 @@ class CountryDropdownSearch<T> extends StatelessWidget {
         );
       },
       decoratorProps: DropDownDecoratorProps(
-        decoration: (decoration?.copyWith(labelText: null) ?? _getDefaultDecoration(context)),
+        decoration: (decoration?.copyWith(labelText: null) ??
+            _getDefaultDecoration(context)),
       ),
     );
   }
 }
-
-
