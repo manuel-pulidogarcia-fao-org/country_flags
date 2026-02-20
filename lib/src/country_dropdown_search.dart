@@ -1,4 +1,5 @@
 import 'package:country_flags/country_flags.dart';
+import 'package:country_flags/src/flag_code.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 
@@ -98,6 +99,44 @@ class CountryDropdownSearch<T> extends StatelessWidget {
   String _capitalize(String text) {
     if (text.isEmpty) return text;
     return text[0].toUpperCase() + text.substring(1);
+  }
+
+  Widget _buildFlagWidget(String? iso2) {
+    if (iso2 == null || iso2.isEmpty) {
+      return _buildUnknownFlag();
+    }
+
+    final flagCode = FlagCode.fromCountryCode(iso2);
+    if (flagCode == null) {
+      return _buildUnknownFlag();
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: CountryFlag.fromCountryCode(
+        iso2,
+        theme: ImageTheme(
+          height: flagHeight,
+          width: flagWidth,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUnknownFlag() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: Container(
+        width: flagWidth,
+        height: flagHeight,
+        color: Colors.grey[300],
+        child: Icon(
+          Icons.help_outline,
+          size: flagHeight * 0.6,
+          color: Colors.grey[600],
+        ),
+      ),
+    );
   }
 
   InputDecoration _getDefaultDecoration(BuildContext context) {
@@ -254,19 +293,8 @@ class CountryDropdownSearch<T> extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (iso2 != null && iso2.isNotEmpty && iso2 != 'UN')
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: CountryFlag.fromCountryCode(
-                        iso2,
-                        theme: ImageTheme(
-                          height: flagHeight,
-                          width: flagWidth,
-                        ),
-                      ),
-                    ),
-                  if (iso2 != null && iso2.isNotEmpty && iso2 != 'UN')
-                    SizedBox(width: 12),
+                  _buildFlagWidget(iso2),
+                  SizedBox(width: 12),
                   Flexible(
                     child: Text(
                       _capitalize(name),
@@ -302,19 +330,8 @@ class CountryDropdownSearch<T> extends StatelessWidget {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (iso2 != null && iso2.isNotEmpty && iso2 != 'UN')
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: CountryFlag.fromCountryCode(
-                  iso2,
-                  theme: ImageTheme(
-                    height: flagHeight,
-                    width: flagWidth,
-                  ),
-                ),
-              ),
-            if (iso2 != null && iso2.isNotEmpty && iso2 != 'UN')
-              SizedBox(width: 12),
+            _buildFlagWidget(iso2),
+            SizedBox(width: 12),
             Flexible(
               child: Text(
                 _capitalize(name),
