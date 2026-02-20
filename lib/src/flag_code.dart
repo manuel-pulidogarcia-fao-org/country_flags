@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'country_data.dart';
 
 /// {@template flag_code}
 /// A class that provides a mapping between flag codes, country codes and
@@ -753,5 +754,14 @@ class FlagCode {
         .singleWhereOrNull((entry) => entry.key == normalized)
         ?.value
         .first;
+  }
+
+  /// Get the flag code from an M49 code.
+  ///
+  /// Returns `null` if the M49 code is not found.
+  static String? fromM49Code(int m49Code) {
+    final iso2 = CountryDataStore.getIso2FromM49(m49Code);
+    if (iso2 == null) return null;
+    return fromCountryCode(iso2);
   }
 }

@@ -164,6 +164,19 @@ class CountryFlag extends StatelessWidget {
           theme: theme,
         );
 
+  /// Create an instance of [CountryFlag] based on an M49 code.
+  ///
+  /// {@macro country_flags}
+  CountryFlag.fromM49Code(
+    int m49Code, {
+    FlagTheme theme = const ImageTheme(),
+    Key? key,
+  }) : this._(
+          key: key,
+          flagCode: FlagCode.fromM49Code(m49Code),
+          theme: theme,
+        );
+
   /// {@macro country_flags}
   const CountryFlag._({
     required this.theme,
